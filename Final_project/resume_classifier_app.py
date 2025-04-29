@@ -91,7 +91,7 @@ if uploaded_file and not file_processed:
     st.write(f"Prediction using Random Forest: {rf_pred[0]}")
 
 # Load the dataset for visualization
-df = pd.read_csv("C:\\Users\\majok\\Downloads\\ResumeDataSet.csv")
+df = pd.read_csv("C:\\Users\\majok\\Downloads\\Final_project\\ResumeDataSet.csv")
 
 # Clean the dataset
 df['cleaned_resume'] = df['Resume'].apply(clean_resume)
