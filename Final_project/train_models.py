@@ -10,7 +10,12 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from nltk.corpus import stopwords
 import nltk
+import os
 
+# Use absolute paths or paths relative to the script location
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+log_model_path = os.path.join(BASE_DIR, 'log_model.pkl')
+log_model = pickle.load(open(log_model_path, 'rb'))
 # Ensure necessary NLTK data is available
 nltk.download('stopwords')
 
