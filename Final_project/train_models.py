@@ -13,7 +13,7 @@ import nltk
 
 nltk.download('stopwords')
 # Load the dataset
-df = pd.read_csv("C:\\Users\\majok\\Downloads\\Final_project\\ResumeDataSet.csv")
+df = pd.read_csv("Final_project/ResumeDataSet.csv")
 
 # Step 1: Remove exact duplicates and duplicates in 'Resume' column
 df = df.drop_duplicates()
