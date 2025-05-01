@@ -94,7 +94,7 @@ python -m streamlit run resume_classifier_app.py
 Example:
 
 ```bash
-Final-AI-project-using-Machine-learning\streamlit_app> python -m streamlit run resume_classifier_app.py
+Intro_AI_Project_Group4\streamlit_app> python -m streamlit run resume_classifier_app.py
 ```
 
 ### Step 6: Use the App
