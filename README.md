@@ -10,7 +10,7 @@ A simple web application that categorizes uploaded resumes using Natural Languag
 - [Features](#features)
 - [Getting Started](#getting-started)
 - [Prerequisites](#prerequisites)
-- [Usage](#usage)
+- [Usage](#use)
 - [Technologies Used](#technologies-used)
 
 ---
