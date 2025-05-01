@@ -10,7 +10,7 @@ A simple web application that categorizes uploaded resumes using Natural Languag
 - [Features](#features)
 - [Getting Started](#getting-started)
 - [Prerequisites](#prerequisites)
-- [Usage](#usage)
+- [Usage](#Use the App)
 - [Technologies Used](#technologies-used)
 
 ---
@@ -176,3 +176,24 @@ Access the app in your web browser by following the link provided in the termina
 Upload a resume (in .txt or .pdf format) to the app.
 
 The app will process the resume and predict the associated category or job role.
+
+## Technologies-Used
+The following tools and libraries were used to build and deploy the Resume Screening App:
+
+Python – Core programming language for data processing and backend logic.
+
+scikit-learn – For training and evaluating machine learning models (e.g., Logistic Regression, Random Forest, KNN).
+
+NLTK (Natural Language Toolkit) – For natural language preprocessing (stopwords removal, tokenization, lemmatization).
+
+Pandas – For loading and handling structured resume data in CSV format.
+
+NumPy – For efficient numerical computations.
+
+Streamlit – For building the interactive web interface to upload and classify resumes.
+
+Matplotlib & Seaborn – For plotting evaluation metrics like confusion matrices.
+
+PyPDF2 / pdfminer.six – For extracting text from PDF resumes (if applicable).
+
+TF-IDF (Term Frequency–Inverse Document Frequency) – For converting resume text into numerical features used in training.
