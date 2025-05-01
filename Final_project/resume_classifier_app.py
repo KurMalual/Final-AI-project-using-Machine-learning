@@ -2,118 +2,156 @@ import streamlit as st
 import pandas as pd
 import re
 import pickle
+import os
+import chardet
+from PyPDF2 import PdfReader
+from docx import Document
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from nltk.corpus import stopwords
-import nltk
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
-import chardet
+import nltk
 
-# Download necessary NLTK data
+# NLTK setup
 nltk.download('stopwords')
 nltk.download('punkt')
 nltk.download('wordnet')
 
-# Load pre-trained models and vectorizer
+# Load models and vectorizer
 log_model = pickle.load(open('log_model.pkl', 'rb'))
 rf_model = pickle.load(open('rf_model.pkl', 'rb'))
 tfidf = pickle.load(open('tfidf_vectorizer.pkl', 'rb'))
 
-# Function to clean the resume text
+# Utility Functions
 def clean_resume(text):
-    text = text.lower()  # Lowercase
-    text = re.sub(r'\s+', ' ', text)  # Remove extra spaces
-    text = re.sub(r'<[^>]+>', ' ', text)  # Remove HTML tags
-    text = re.sub(r'[^\w\s]', ' ', text)  # Remove punctuation
-    text = re.sub(r'\d+', '', text)  # Remove digits
+    text = text.lower()
+    text = re.sub(r'\s+', ' ', text)
+    text = re.sub(r'<[^>]+>', ' ', text)
+    text = re.sub(r'[^\w\s]', ' ', text)
+    text = re.sub(r'\d+', '', text)
     return text.strip()
 
-# Function to remove stopwords
 def remove_stopwords(text):
     stop_words = set(stopwords.words('english'))
     return ' '.join([word for word in text.split() if word not in stop_words])
 
-# Function to generate a word cloud for a specific category
 def generate_wordcloud(category, df):
     text = " ".join(df[df['Category'] == category]['cleaned_resume'])
-    wordcloud = WordCloud(width=800, height=400, background_color='white').generate(text)
-    plt.figure(figsize=(10,5))
-    plt.imshow(wordcloud, interpolation='bilinear')
-    plt.axis('off')
-    plt.title(f"WordCloud for {category} Resumes")
-    st.pyplot(plt)
+    wordcloud = WordCloud(width=800, height=400, background_color='#f8f9fa', colormap='viridis').generate(text)
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.imshow(wordcloud, interpolation='bilinear')
+    ax.axis('off')
+    st.pyplot(fig)
 
-# App title
-st.title("Resume Classifier")
+def extract_text(file, file_type):
+    if file_type == 'pdf':
+        reader = PdfReader(file)
+        text = ''
+        for page in reader.pages:
+            page_text = page.extract_text()
+            if page_text:
+                text += page_text
+        return text
+    elif file_type == 'docx':
+        doc = Document(file)
+        return "\n".join([para.text for para in doc.paragraphs])
+    elif file_type == 'txt':
+        raw_data = file.read()
+        encoding = chardet.detect(raw_data)['encoding'] or 'utf-8'
+        try:
+            return raw_data.decode(encoding)
+        except UnicodeDecodeError:
+            return raw_data.decode('ISO-8859-1')
+    else:
+        return ""
 
-# Sidebar for user input
-st.sidebar.header("Upload Resume")
-uploaded_file = st.sidebar.file_uploader("Choose a resume file", type=["txt", "pdf", "docx"])
+# Custom CSS Styling
+st.markdown("""
+    <style>
+        html, body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #00008B;
+        }
+        .stApp {
+            max-width: 1000px;
+            margin: auto;
+            padding: 2rem;
+            border-radius: 10px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+        h1, h2, h3 {
+            color: #1f4e79;
+        }
+        .stButton>button {
+            background-color: #1f4e79;
+            color: white;
+            border-radius: 5px;
+            padding: 0.5rem 1rem;
+            border: none;
+        }
+        .stSidebar {
+            background-color:   #28a745!important;
+        }
+        .metric-label {
+            font-size: 1rem;
+            color: #1f4e79;
+        }
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #f0f2f6;
+        }
+        footer {visibility: hidden;}
+    </style>
+""", unsafe_allow_html=True)
 
-# Variable to track if file is processed successfully
-file_processed = False
+# App Title
+st.title("📄 AI-Powered Resume Classifier")
+st.markdown("Upload your resume and let the AI predict the job category it fits best into. Choose between **Logistic Regression** and **Random Forest** classifiers.")
 
-if uploaded_file and not file_processed:
-    # Set the flag to True so the file is not processed again
-    file_processed = True
-    
-    # Detect file encoding using chardet
-    raw_data = uploaded_file.read()
-    detected_encoding = chardet.detect(raw_data)['encoding']
-    
-    # Attempt to decode using the detected encoding, fall back to 'ISO-8859-1' if needed
-    try:
-        if detected_encoding is None:
-            detected_encoding = 'utf-8'
-        resume_text = raw_data.decode(detected_encoding)
-        st.success("File uploaded and processed successfully!")
-    except UnicodeDecodeError:
-        st.error("There was an issue decoding the file with the detected encoding. Trying with ISO-8859-1...")
-        resume_text = raw_data.decode('ISO-8859-1')
-        st.success("File uploaded and processed successfully!")
+# Sidebar
+st.sidebar.header("Upload Your Resume")
+uploaded_file = st.sidebar.file_uploader("Supported formats: TXT, PDF, DOCX", type=["txt", "pdf", "docx"])
 
-    # Clean and preprocess resume text
-    cleaned_resume = clean_resume(resume_text)
-    cleaned_resume = remove_stopwords(cleaned_resume)
+# Resume Handling
+if uploaded_file:
+    ext = uploaded_file.name.split('.')[-1].lower()
+    resume_text = extract_text(uploaded_file, ext)
 
-    # Vectorize the resume text using the pre-trained TF-IDF vectorizer
-    resume_vectorized = tfidf.transform([cleaned_resume])
+    if resume_text:
+        st.success("✅ Resume uploaded and processed successfully!")
+        cleaned_resume = clean_resume(resume_text)
+        cleaned_resume = remove_stopwords(cleaned_resume)
+        resume_vectorized = tfidf.transform([cleaned_resume])
 
-    # Predict with Logistic Regression
-    log_pred = log_model.predict(resume_vectorized)
-    # Predict with Random Forest
-    rf_pred = rf_model.predict(resume_vectorized)
+        # Predict with models
+        log_pred = log_model.predict(resume_vectorized)
+        rf_pred = rf_model.predict(resume_vectorized)
 
-    # Display predictions
-    st.write(f"Prediction using Logistic Regression: {log_pred[0]}")
-    st.write(f"Prediction using Random Forest: {rf_pred[0]}")
+        # Display results
+        st.subheader("🧠 Prediction Results")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("**Logistic Regression Prediction**")
+            st.metric(label="Predicted Category", value=log_pred[0])
+        with col2:
+            st.markdown("**Random Forest Prediction**")
+            st.metric(label="Predicted Category", value=rf_pred[0])
 
-# Load the dataset for visualization
+        with st.expander("📝 Preview of Uploaded Resume"):
+            st.code(resume_text[:1500], language='text')
+    else:
+        st.error("Could not extract text from the uploaded file.")
+
+# WordCloud Visualization
 df = pd.read_csv("ResumeDataSet.csv")
+df['cleaned_resume'] = df['Resume'].apply(clean_resume).apply(remove_stopwords)
 
-# Clean the dataset
-df['cleaned_resume'] = df['Resume'].apply(clean_resume)
-df['cleaned_resume'] = df['cleaned_resume'].apply(remove_stopwords)
+with st.expander("📊 Explore WordCloud for Data Science"):
+    generate_wordcloud("Data Science", df)
 
-# Display word cloud for Data Science category
-generate_wordcloud('Data Science', df)
-
-# Upload the resume file again (this will not trigger an upload if the file has already been processed)
-if uploaded_file and not file_processed:
-    # Read the raw data from the file
-    raw_data = uploaded_file.read()
-
-    # Use chardet to detect the encoding
-    detected_encoding = chardet.detect(raw_data)['encoding']
-
-    # If encoding is None, default to 'utf-8'
-    if detected_encoding is None:
-        detected_encoding = 'utf-8'
-
-    # Decode the file using the detected encoding
-    resume_text = raw_data.decode(detected_encoding)
-
-    # Display the resume text (if it's text-based)
-    st.text_area("Resume Text", resume_text, height=300)
+st.markdown("---")
+st.markdown("Made using Streamlit")
