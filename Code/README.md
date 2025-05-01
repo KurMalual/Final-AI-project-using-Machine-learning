@@ -47,10 +47,10 @@ Optional but recommended:
 
 ### Step 1: Download and Navigate
 
-After downloading the project folder named `Final-AI-project-using-Machine-learning`, open your terminal and navigate to the Streamlit app directory:
+After downloading the project folder named `Intro_AI_Project_Group4`, open your terminal and navigate to the Streamlit app directory:
 
 ```bash
-cd Final-AI-project-using-Machine-learning/streamlit_app
+cd Intro_AI_Project_Group4/streamlit_app
 ```
 
 ### Step 2: Setup Your Environment
